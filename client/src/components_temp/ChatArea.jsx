@@ -5,31 +5,35 @@ import axios from 'axios';
 
 const { Text } = Typography;
 
-const socket = io('http://localhost:5000'); // Connect to the Socket.IO server
+const socket = io('http://localhost:5000');
 
 const ChatArea = ({ selectedUserId, userId }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [receiverName, setReceiverName] = useState('');
   const [onlineStatus, setOnlineStatus] = useState('offline');
+  const [isTyping, setIsTyping] = useState(false);
   const messageEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
+  // Fetch messages between sender and receiver
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
         `http://localhost:5000/api/messages?sender=${userId}&receiver=${selectedUserId}`
       );
-      setMessages(response.data.reverse()); // Reverse to show recent messages at the bottom
+      setMessages(response.data); // No reverse here, let the order be as it is
     } catch (error) {
       console.error('Error fetching messages:', error);
       message.error('Error fetching messages.');
     }
   };
 
+  // Fetch the receiver's name
   const fetchReceiverName = async () => {
     try {
       const response = await axios.get(`http://localhost:5000/api/auth/users/${selectedUserId}`);
-      setReceiverName(response.data.username); // Set the receiver's name
+      setReceiverName(response.data.username);
     } catch (error) {
       console.error('Error fetching receiver name:', error.response || error);
       message.error('Error fetching receiver name.');
@@ -38,7 +42,6 @@ const ChatArea = ({ selectedUserId, userId }) => {
 
   useEffect(() => {
     if (userId) {
-      // Join the room with the logged-in user's ID
       socket.emit('join', userId);
     }
 
@@ -47,7 +50,7 @@ const ChatArea = ({ selectedUserId, userId }) => {
       fetchReceiverName();
     }
 
-    // Listen for online/offline status changes
+    // User online/offline status handling
     const handleUserOnline = (userId) => {
       if (userId === selectedUserId) {
         setOnlineStatus('online');
@@ -60,15 +63,29 @@ const ChatArea = ({ selectedUserId, userId }) => {
       }
     };
 
+    // Typing status event handlers
+    const handleTyping = () => {
+      setIsTyping(true);
+    };
+
+    const handleStopTyping = () => {
+      setIsTyping(false);
+    };
+
     socket.on('userOnline', handleUserOnline);
     socket.on('userOffline', handleUserOffline);
+    socket.on('typing', handleTyping);
+    socket.on('stopTyping', handleStopTyping);
 
     return () => {
       socket.off('userOnline', handleUserOnline);
       socket.off('userOffline', handleUserOffline);
+      socket.off('typing', handleTyping);
+      socket.off('stopTyping', handleStopTyping);
     };
   }, [userId, selectedUserId]);
 
+  // Handle sending a message
   const handleSendMessage = () => {
     if (!newMessage.trim()) {
       message.warning('Message cannot be empty.');
@@ -79,21 +96,45 @@ const ChatArea = ({ selectedUserId, userId }) => {
       sender: userId,
       receiver: selectedUserId,
       content: newMessage,
-      timestamp: new Date(), // Add timestamp when sending message
+      timestamp: new Date(),
     };
 
-    // Emit the message to the server and notify both sender and receiver
+    // Emit "sendMessage" and then update state
     socket.emit('sendMessage', msgData);
 
+    // Emit "stopTyping" after sending the message
+    socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
+
+    // Only update state after message is sent
     setMessages((prevMessages) => [
       ...prevMessages,
       { sender: userId, receiver: selectedUserId, content: newMessage, timestamp: msgData.timestamp },
     ]);
 
+    // Clear input field
     setNewMessage('');
-    scrollToBottom();
+    scrollToBottom(); // Scroll to bottom after sending a message
   };
 
+  // Handle typing event and emit "typing" status
+  const handleTyping = (e) => {
+    setNewMessage(e.target.value);
+
+    // Emit "typing" event
+    socket.emit('typing', { sender: userId, receiver: selectedUserId });
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Emit "stopTyping" if no typing occurs for 1 second
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
+    }, 1000);
+  };
+
+  // Scroll to bottom of the message area
   const scrollToBottom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -103,14 +144,14 @@ const ChatArea = ({ selectedUserId, userId }) => {
   }, [messages]);
 
   useEffect(() => {
-    // Listen for new messages from the server (this handles receiving messages in real-time)
     const handleReceiveMessage = (msg) => {
+      // Ensure the message is relevant to the current chat
       if (
         (msg.sender === userId && msg.receiver === selectedUserId) ||
         (msg.sender === selectedUserId && msg.receiver === userId)
       ) {
-        setMessages((prevMessages) => [...prevMessages, msg]);
-        scrollToBottom();
+        setMessages((prevMessages) => [...prevMessages, msg]); // Add new message to the end
+        scrollToBottom(); // Scroll to bottom when new message is received
       }
     };
 
@@ -122,19 +163,8 @@ const ChatArea = ({ selectedUserId, userId }) => {
   }, [userId, selectedUserId]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Chat messages */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: '10px 20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px',
-          boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
-          marginBottom: '60px', // Added enough margin to keep space for input at the bottom
-        }}
-      >
+    <div style={styles.container}>
+      <div style={styles.messages}>
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -145,75 +175,94 @@ const ChatArea = ({ selectedUserId, userId }) => {
           >
             <div
               style={{
-                display: 'inline-block',
-                padding: '12px 16px',
-                borderRadius: '16px',
-                backgroundColor: msg.sender === userId ? '#4CAF50' : '#729999', // Sender: light green, Receiver: dark green
-                color: msg.sender === userId ? '#fff' : '#fff', // White text for both sender and receiver
-                maxWidth: '70%',
-                wordWrap: 'break-word',
-                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                ...styles.bubble,
+                backgroundColor: msg.sender === userId ? '#4CAF50' : '#3E4E56',
+                color: '#fff',
               }}
             >
               <Text>{msg.content}</Text>
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: '#D3D3D3', // Very light grey for timestamp
-                  marginTop: '5px',
-                  textAlign: 'right',
-                }}
-              >
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <div style={styles.timestamp}>
+                {new Date(msg.timestamp).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </div>
             </div>
           </div>
         ))}
         <div ref={messageEndRef} />
+        {isTyping && <div style={styles.typingIndicator}>{`${receiverName} is typing...`}</div>}
       </div>
 
-      {/* Message Input and Send Button */}
-      <div
-        style={{
-          position: 'sticky',
-          bottom: '0',
-          left: '0',
-          right: '0',
-          padding: '10px 20px',
-          backgroundColor: '#fff',
-          borderTop: '2px solid #eaeaea',
-          display: 'flex',
-          alignItems: 'center',
-          zIndex: '1', // Ensure it stays on top of chat messages
-        }}
-      >
+      <div style={styles.inputContainer}>
         <Input
           placeholder="Type a message..."
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          style={{
-            flex: 1,
-            marginRight: '10px',
-            borderRadius: '50px',
-            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-            padding: '10px 16px',
-          }}
+          onChange={handleTyping}
+          style={styles.input}
         />
-     <Button
-  type="primary"
-  onClick={handleSendMessage}
-  style={{
-    backgroundColor: '#4CAF50',  
-    borderColor: '#4CAF50',      
-    borderRadius: '50px',
-    padding: '8px 16px',
-  }}
->
-  Send
-</Button>
+        <Button type="primary" onClick={handleSendMessage} style={styles.sendButton}>
+          Send
+        </Button>
       </div>
     </div>
   );
+};
+
+const styles = {
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    backgroundColor: '#2F3A40',
+    color: '#fff',
+  },
+  messages: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '15px 20px',
+    backgroundColor: '#2F3A40',
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none',
+  },
+  bubble: {
+    display: 'inline-block',
+    padding: '12px 16px',
+    borderRadius: '16px',
+    maxWidth: '70%',
+    wordWrap: 'break-word',
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+  },
+  timestamp: {
+    fontSize: '12px',
+    color: '#D3D3D3',
+    marginTop: '5px',
+    textAlign: 'right',
+  },
+  typingIndicator: {
+    fontSize: '14px',
+    color: '#A9A9A9',
+    margin: '10px 0',
+    textAlign: 'left',
+  },
+  inputContainer: {
+    display: 'flex',
+    padding: '10px 20px',
+  },
+  input: {
+    flex: 1,
+    marginRight: '10px',
+    borderRadius: '20px',
+    padding: '10px 16px',
+    backgroundColor: '#3E4E56',
+    color: '#fff',
+  },
+  sendButton: {
+    backgroundColor: '#4CAF50',
+    color: '#fff',
+    borderRadius: '20px',
+    padding: '10px 16px',
+  },
 };
 
 export default ChatArea;
