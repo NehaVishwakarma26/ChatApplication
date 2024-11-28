@@ -13,9 +13,14 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app); // Create an HTTP server
+
+// Define allowed origins
+const allowedOrigins = ['http://localhost:3000', 'https://chattrhive.netlify.app'];
+
+// CORS setup for Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000', // Allow requests from the frontend
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
   },
 });
@@ -24,7 +29,19 @@ const io = new Server(server, {
 let onlineUsers = {};
 
 app.use(express.json());
-app.use(cors());
+
+// CORS setup for REST APIs
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+  })
+);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -88,7 +105,6 @@ app.get('/api/onlineUsers', (req, res) => {
   // Send the list of online users
   res.json(Object.keys(onlineUsers)); // Return only the userIds of online users
 });
-
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

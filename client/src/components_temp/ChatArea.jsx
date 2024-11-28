@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input, Button, Typography, message } from 'antd';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import { API_BASE_URL } from './config'; // Importing the base URL from config.js
 
 const { Text } = Typography;
 
-const socket = io('https://chatapplication-x3vq.onrender.com');
+const socket = io(API_BASE_URL.replace('/api', '')); // Adjusting socket connection URL
 
 const ChatArea = ({ selectedUserId, userId }) => {
   const [messages, setMessages] = useState([]);
@@ -20,7 +21,7 @@ const ChatArea = ({ selectedUserId, userId }) => {
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
-        `https://chatapplication-x3vq.onrender.com/api/messages?sender=${userId}&receiver=${selectedUserId}`
+        `${API_BASE_URL}/messages?sender=${userId}&receiver=${selectedUserId}`
       );
       setMessages(response.data);
     } catch (error) {
@@ -32,7 +33,7 @@ const ChatArea = ({ selectedUserId, userId }) => {
   // Fetch the receiver's name
   const fetchReceiverName = async () => {
     try {
-      const response = await axios.get(`https://chatapplication-x3vq.onrender.com/api/auth/users/${selectedUserId}`);
+      const response = await axios.get(`${API_BASE_URL}/auth/users/${selectedUserId}`);
       setReceiverName(response.data.username);
     } catch (error) {
       console.error('Error fetching receiver name:', error.response || error);
@@ -205,13 +206,13 @@ const styles = {
     flexDirection: 'column',
     height: '100%',
     backgroundColor: '#2F3A40',
-    color: '#fff', // Ensures the text color of the whole container is white by default
+    color: '#fff',
   },
   messages: {
     flex: 1,
     overflowY: 'auto',
     padding: '15px 20px',
-    backgroundColor: '#2F3A40', // Keeps background as dark theme
+    backgroundColor: '#2F3A40',
     scrollbarWidth: 'none',
     msOverflowStyle: 'none',
   },
@@ -222,7 +223,7 @@ const styles = {
     maxWidth: '70%',
     wordWrap: 'break-word',
     boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
-    color: '#fff', // This ensures the text inside the message bubble is white
+    color: '#fff',
   },
   timestamp: {
     fontSize: '12px',
@@ -246,7 +247,7 @@ const styles = {
     borderRadius: '20px',
     padding: '10px 16px',
     backgroundColor: '#3E4E56',
-    color: '#fff', // Keeps input text white
+    color: '#fff',
   },
   sendButton: {
     backgroundColor: '#6ec071',
