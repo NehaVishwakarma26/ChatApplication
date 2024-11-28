@@ -40,3 +40,126 @@ This is a real-time chat application designed for seamless communication between
 ```bash
 git clone https://github.com/your-username/chat-application.git
 cd chat-application
+
+## Backend Setup
+
+### Install Backend Dependencies
+
+1. Navigate to the server directory:
+   ```bash
+   cd server
+   ```
+
+2. Install the required dependencies:
+   ```bash
+   npm install
+   ```
+
+### Environment Variables
+
+Create a `.env` file in the `server` folder to configure the application. Example:
+
+```env
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/chat-app
+JWT_SECRET=your_jwt_secret
+```
+
+### Run the Backend
+
+To start the backend server on port 5000 (or any port you've configured), run the following command:
+
+```bash
+npm start
+```
+
+---
+
+## Frontend Setup
+
+### Install Frontend Dependencies
+
+1. Navigate to the client directory:
+   ```bash
+   cd client
+   ```
+
+2. Install the required dependencies:
+   ```bash
+   npm install
+   ```
+
+### Run the Frontend
+
+To start the frontend application, run the following command:
+
+```bash
+npm start
+```
+
+This will run the frontend on [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Environment Variables
+
+### Backend Environment Variables:
+- **PORT**: The port on which the backend server will run (default: `5000`).
+- **MONGODB_URI**: The URI to connect to your MongoDB database.
+- **JWT_SECRET**: A secret key used for signing and verifying JSON Web Tokens.
+
+### Frontend Environment Variables:
+- **REACT_APP_API_URL**: The URL to the backend API (usually `http://localhost:5000` in development).
+
+---
+
+## Usage
+
+### User Authentication
+
+Users can sign up and log in through the frontend interface. The authentication process is handled by the backend, which returns a JWT token upon successful login. The token is stored in `localStorage` or `sessionStorage` on the frontend and used to authenticate subsequent requests.
+
+### Chat Interface
+
+After logging in, users can select a contact from the sidebar to start a conversation. Once a user selects a contact, the chat area updates to display the conversation history. 
+
+- **Real-time Messaging**: New messages are sent and received instantly using Socket.io.
+- **Image Upload**: Users can upload images directly in the chat.
+
+### Typing Indicator
+
+Whenever a user is typing, the other participants in the conversation will see a "typing..." indicator next to the user's name.
+
+---
+
+## Contributing
+
+We welcome contributions to this project! If you'd like to contribute, please follow these steps:
+
+### Steps to Contribute:
+1. **Fork the repository**: Create a copy of the repository on your GitHub account.
+2. **Create a new branch**: Make a new branch for your feature or bug fix:
+   ```bash
+   git checkout -b feature-or-bugfix-name
+   ```
+3. **Make your changes**: Modify the code, add new features, or fix bugs.
+4. **Commit your changes**: 
+   ```bash
+   git commit -m "Description of your changes"
+   ```
+5. **Push to your fork**:
+   ```bash
+   git push origin feature-or-bugfix-name
+   ```
+6. **Open a pull request**: Open a pull request on the original repository with a description of your changes.
+
+### Guidelines:
+- Ensure the code is well-documented and follows a consistent style.
+- Write tests for any new features or bug fixes.
+- If fixing a bug, describe how you reproduced it and how your fix resolves it.
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
