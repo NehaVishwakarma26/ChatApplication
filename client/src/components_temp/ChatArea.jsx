@@ -100,13 +100,9 @@ const ChatArea = ({ selectedUserId, userId }) => {
       timestamp: new Date(),
     };
 
+    // Emit the message to the server
     socket.emit('sendMessage', msgData);
     socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
-
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { sender: userId, receiver: selectedUserId, content: newMessage, timestamp: msgData.timestamp },
-    ]);
 
     setNewMessage('');
     scrollToBottom();
