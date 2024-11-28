@@ -21,6 +21,13 @@ const Register = () => {
 
   return (
     <div style={{ width: '100%', maxWidth: '400px', margin: 'auto', paddingTop: '60px' }}>
+      {/* Welcome Banner */}
+      <div style={styles.welcomeBanner}>
+        <Typography.Title level={2} style={styles.welcomeText}>
+          Welcome to <span style={styles.chatRhiveText}>ChattrHive</span>
+        </Typography.Title>
+      </div>
+
       <Card
         title="Register"
         style={{
@@ -86,6 +93,26 @@ const Register = () => {
       </Card>
     </div>
   );
+};
+
+// Styles for the welcome banner
+const styles = {
+  welcomeBanner: {
+    textAlign: 'center',
+    marginBottom: '20px',
+  },
+  welcomeText: {
+    fontWeight: 'bold',
+    color: '#4CAF50', // Green color for the welcome message
+    fontSize: '28px',
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+  },
+  chatRhiveText: {
+    fontWeight: '900', // Bold the "ChattrHive" text
+    fontSize: '36px',  // Increase font size to make it stand out
+    color: '#4CAF50',  // Green color for consistency
+  },
 };
 
 export default Register;

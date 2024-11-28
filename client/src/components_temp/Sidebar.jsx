@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { List, Typography, Spin, Avatar } from 'antd';
+import { List, Typography, Spin, Avatar, Input } from 'antd';
 import axios from 'axios';
 import { UserOutlined } from '@ant-design/icons';
 
 const Sidebar = ({ setSelectedUserId }) => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Get the logged-in user's details from sessionStorage
   const loggedInUserId = sessionStorage.getItem('userId');
@@ -34,6 +35,10 @@ const Sidebar = ({ setSelectedUserId }) => {
     window.location.href = '/';
   };
 
+  const filteredUsers = users.filter((user) =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div style={styles.sidebarContainer}>
       {/* Profile Section */}
@@ -51,15 +56,23 @@ const Sidebar = ({ setSelectedUserId }) => {
 
       <div style={styles.contactHeader}>
         <Typography.Title level={4} style={styles.headerTitle}>
-          Chats
+          Users
         </Typography.Title>
+        
+        {/* Search Bar */}
+        <Input
+          placeholder="Search users..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={styles.searchInput}
+        />
       </div>
 
       {loading ? (
         <Spin tip="Loading..." style={styles.loadingSpinner} />
       ) : (
         <List
-          dataSource={users}
+          dataSource={filteredUsers}
           renderItem={(user) => (
             <List.Item
               key={user._id}
@@ -136,6 +149,12 @@ const styles = {
     margin: 0,
     fontSize: '18px',
     fontWeight: 'bold',
+  },
+  searchInput: {
+    marginTop: '10px',
+    padding: '6px 12px',
+    borderRadius: '8px',
+    border: '1px solid #444',
   },
   loadingSpinner: {
     textAlign: 'center',

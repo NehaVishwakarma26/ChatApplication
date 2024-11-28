@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Typography } from 'antd';
+import { Layout, Row, Col, Typography, Drawer, Button, Menu } from 'antd';
+import { MenuOutlined } from '@ant-design/icons';
 import Sidebar from '../components_temp/Sidebar';
 import ChatArea from '../components_temp/ChatArea';
 import axios from 'axios';
@@ -10,6 +11,7 @@ const ChatPage = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [receiverName, setReceiverName] = useState('');
   const [isTyping, setIsTyping] = useState(false); // New state for typing status
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // State to toggle sidebar visibility
   const userId = sessionStorage.getItem('userId'); // Get the logged-in user ID from sessionStorage
 
   useEffect(() => {
@@ -37,16 +39,36 @@ const ChatPage = () => {
     setIsTyping(status); // Update typing status from ChatArea
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
   return (
     <Layout style={styles.layout}>
       <Row style={styles.row}>
-        {/* Sidebar */}
-        <Col span={6} style={styles.sidebarCol}>
+        {/* Sidebar for larger screens */}
+        <Col
+          xs={0} sm={6} lg={6}
+          style={styles.sidebarCol}
+        >
           <Sidebar setSelectedUserId={setSelectedUserId} />
         </Col>
 
+        {/* Hamburger menu for smaller screens */}
+        <div style={styles.hamburgerMenu}>
+          <Button
+            type="text"
+            icon={<MenuOutlined />}
+            onClick={toggleSidebar}
+            style={styles.hamburgerIcon}
+          />
+        </div>
+
         {/* Chat Area */}
-        <Col span={18} style={styles.chatCol}>
+        <Col
+          xs={24} sm={18} lg={18}
+          style={styles.chatCol}
+        >
           {/* Chat Container */}
           <div style={styles.chatContainer}>
             {/* Chat Header */}
@@ -75,6 +97,18 @@ const ChatPage = () => {
           </div>
         </Col>
       </Row>
+
+      {/* Sidebar as a Drawer for small screens */}
+      <Drawer
+        title="Select a User"
+        placement="left"
+        onClose={toggleSidebar}
+        visible={isSidebarVisible}
+        width={250}
+        bodyStyle={styles.drawerBody}
+      >
+        <Sidebar setSelectedUserId={setSelectedUserId} />
+      </Drawer>
     </Layout>
   );
 };
@@ -98,6 +132,19 @@ const styles = {
     borderRight: '1px solid rgba(255, 255, 255, 0.1)', // Subtle border
     padding: 0,
     height: '100vh', // Make the sidebar occupy the full height
+    overflowY: 'auto', // Make the sidebar scrollable if content overflows
+  },
+  hamburgerMenu: {
+    position: 'absolute',
+    top: '10px',
+    left: '10px',
+    display: 'none', // Hide by default
+  },
+  hamburgerIcon: {
+    fontSize: '24px',
+    color: '#fff',
+    background: 'none',
+    border: 'none',
   },
   chatCol: {
     backgroundColor: '#2F3A40', // Chat background
@@ -131,12 +178,16 @@ const styles = {
   chatContent: {
     flex: 1, // Ensures the chat content fills the remaining space
     padding: '15px 20px',
-    overflowY: 'hidden', // Prevent scrolling here as well
+    overflowY: 'auto', // Enable vertical scrolling for chat content
   },
   noChatMessage: {
     textAlign: 'center',
     marginTop: '20%',
     color: '#A9A9A9', // Placeholder text color
+  },
+  drawerBody: {
+    padding: '0 16px',
+    backgroundColor: '#2F3A40',
   },
 };
 
