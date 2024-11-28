@@ -166,7 +166,7 @@ const ChatArea = ({ selectedUserId, userId }) => {
             <div
               style={{
                 ...styles.bubble,
-                backgroundColor: msg.sender === userId ? '#4CAF50' : '#3E4E56',
+                backgroundColor: msg.sender === userId ? '#6ec071' : '#859ca7',
                 color: '#fff',
               }}
             >
@@ -205,13 +205,13 @@ const styles = {
     flexDirection: 'column',
     height: '100%',
     backgroundColor: '#2F3A40',
-    color: '#fff',
+    color: '#fff', // Ensures the text color of the whole container is white by default
   },
   messages: {
     flex: 1,
     overflowY: 'auto',
     padding: '15px 20px',
-    backgroundColor: '#2F3A40',
+    backgroundColor: '#2F3A40', // Keeps background as dark theme
     scrollbarWidth: 'none',
     msOverflowStyle: 'none',
   },
@@ -222,6 +222,7 @@ const styles = {
     maxWidth: '70%',
     wordWrap: 'break-word',
     boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+    color: '#fff', // This ensures the text inside the message bubble is white
   },
   timestamp: {
     fontSize: '12px',
@@ -245,13 +246,13 @@ const styles = {
     borderRadius: '20px',
     padding: '10px 16px',
     backgroundColor: '#3E4E56',
-    color: '#fff',
+    color: '#fff', // Keeps input text white
   },
   sendButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#6ec071',
     color: '#fff',
     borderRadius: '20px',
-    padding: '10px 16px',
+    padding: '20px 20px 20px 20px',
   },
 };
 
