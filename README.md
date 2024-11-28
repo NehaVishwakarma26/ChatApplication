@@ -124,11 +124,6 @@ Users can sign up and log in through the frontend interface. The authentication 
 After logging in, users can select a contact from the sidebar to start a conversation. Once a user selects a contact, the chat area updates to display the conversation history. 
 
 - **Real-time Messaging**: New messages are sent and received instantly using Socket.io.
-- **Image Upload**: Users can upload images directly in the chat.
-
-### Typing Indicator
-
-Whenever a user is typing, the other participants in the conversation will see a "typing..." indicator next to the user's name.
 
 ---
 
