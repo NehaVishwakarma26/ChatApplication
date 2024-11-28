@@ -24,7 +24,7 @@ const Register = () => {
       {/* Welcome Banner */}
       <div style={styles.welcomeBanner}>
         <Typography.Title level={2} style={styles.welcomeText}>
-          Welcome to <span style={styles.chatRhiveText}>ChattrHive</span>
+          <span style={styles.chatRhiveText}>ChattrHive</span>
         </Typography.Title>
       </div>
 
