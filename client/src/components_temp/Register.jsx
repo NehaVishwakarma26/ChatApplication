@@ -11,7 +11,7 @@ const Register = () => {
 
   const handleRegister = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/register', { username, email, password });
+      await axios.post('https://chatapplication-x3vq.onrender.com/api/auth/register', { username, email, password });
       message.success('Registration successful! Redirecting...');
       window.location.href = '/';
     } catch (error) {

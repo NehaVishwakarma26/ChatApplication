@@ -14,7 +14,7 @@ const Sidebar = ({ setSelectedUserId }) => {
   // Fetch all users except the logged-in user
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/auth/users');
+      const response = await axios.get('https://chatapplication-x3vq.onrender.com/api/auth/users');
       const filteredUsers = response.data.filter((user) => user._id !== loggedInUserId); // Exclude logged-in user
       setUsers(filteredUsers);
       setLoading(false);
@@ -170,6 +170,5 @@ const styles = {
     fontSize: '12px',
   },
 };
-
 
 export default Sidebar;

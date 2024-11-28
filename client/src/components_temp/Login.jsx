@@ -11,7 +11,7 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const response = await axios.post('https://chatapplication-x3vq.onrender.com/api/auth/login', { email, password });
 
       sessionStorage.setItem('token', response.data.token);
       sessionStorage.setItem('userId', response.data.userId);

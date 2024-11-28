@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const { Text } = Typography;
 
-const socket = io('http://localhost:5000');
+const socket = io('https://chatapplication-x3vq.onrender.com');
 
 const ChatArea = ({ selectedUserId, userId }) => {
   const [messages, setMessages] = useState([]);
@@ -20,9 +20,9 @@ const ChatArea = ({ selectedUserId, userId }) => {
   const fetchMessages = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/messages?sender=${userId}&receiver=${selectedUserId}`
+        `https://chatapplication-x3vq.onrender.com/api/messages?sender=${userId}&receiver=${selectedUserId}`
       );
-      setMessages(response.data); // No reverse here, let the order be as it is
+      setMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
       message.error('Error fetching messages.');
@@ -32,7 +32,7 @@ const ChatArea = ({ selectedUserId, userId }) => {
   // Fetch the receiver's name
   const fetchReceiverName = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/auth/users/${selectedUserId}`);
+      const response = await axios.get(`https://chatapplication-x3vq.onrender.com/api/auth/users/${selectedUserId}`);
       setReceiverName(response.data.username);
     } catch (error) {
       console.error('Error fetching receiver name:', error.response || error);
@@ -99,36 +99,27 @@ const ChatArea = ({ selectedUserId, userId }) => {
       timestamp: new Date(),
     };
 
-    // Emit "sendMessage" and then update state
     socket.emit('sendMessage', msgData);
-
-    // Emit "stopTyping" after sending the message
     socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
 
-    // Only update state after message is sent
     setMessages((prevMessages) => [
       ...prevMessages,
       { sender: userId, receiver: selectedUserId, content: newMessage, timestamp: msgData.timestamp },
     ]);
 
-    // Clear input field
     setNewMessage('');
-    scrollToBottom(); // Scroll to bottom after sending a message
+    scrollToBottom();
   };
 
   // Handle typing event and emit "typing" status
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
-
-    // Emit "typing" event
     socket.emit('typing', { sender: userId, receiver: selectedUserId });
 
-    // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Emit "stopTyping" if no typing occurs for 1 second
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
     }, 1000);
@@ -145,13 +136,12 @@ const ChatArea = ({ selectedUserId, userId }) => {
 
   useEffect(() => {
     const handleReceiveMessage = (msg) => {
-      // Ensure the message is relevant to the current chat
       if (
         (msg.sender === userId && msg.receiver === selectedUserId) ||
         (msg.sender === selectedUserId && msg.receiver === userId)
       ) {
-        setMessages((prevMessages) => [...prevMessages, msg]); // Add new message to the end
-        scrollToBottom(); // Scroll to bottom when new message is received
+        setMessages((prevMessages) => [...prevMessages, msg]);
+        scrollToBottom();
       }
     };
 
