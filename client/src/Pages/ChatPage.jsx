@@ -1,85 +1,91 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Row, Col, Typography, Drawer, Button, Menu } from 'antd';
+import { Layout, Row, Col, Typography, Drawer, Button } from 'antd';
 import { MenuOutlined } from '@ant-design/icons';
 import Sidebar from '../components_temp/Sidebar';
 import ChatArea from '../components_temp/ChatArea';
 import axios from 'axios';
+import { API_BASE_URL } from '../components_temp/config'; // Import the base URL from config
 
 const { Content } = Layout;
 
 const ChatPage = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [receiverName, setReceiverName] = useState('');
-  const [isTyping, setIsTyping] = useState(false); // New state for typing status
-  const [isSidebarVisible, setIsSidebarVisible] = useState(false); // State to toggle sidebar visibility
-  const userId = sessionStorage.getItem('userId'); // Get the logged-in user ID from sessionStorage
+  const [isTyping, setIsTyping] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState([]); // Array to store online user IDs
+  const userId = sessionStorage.getItem('userId');
 
   useEffect(() => {
     console.log('Logged in user ID:', userId);
   }, [userId]);
 
   useEffect(() => {
-    // Fetch the receiver's username when a user is selected for chatting
+    // Fetch the receiver's username when a user is selected
     const fetchReceiverName = async () => {
       if (selectedUserId) {
         try {
-          const response = await axios.get(`http://localhost:5000/api/auth/users/${selectedUserId}`);
-          setReceiverName(response.data.username);
+          const response = await axios.get(`${API_BASE_URL}/auth/users/${selectedUserId}`);
+          setReceiverName(response.data.username); // Update the state with the username
         } catch (error) {
           console.error('Error fetching receiver username:', error);
         }
       }
     };
-
     fetchReceiverName();
   }, [selectedUserId]);
 
-  // Callback to update typing status
+  useEffect(() => {
+    // Fetch online users periodically
+    const fetchOnlineUsers = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/onlineUsers`);
+        setOnlineUsers(response.data); // Update online user IDs
+      } catch (error) {
+        console.error('Error fetching online users:', error);
+      }
+    };
+
+    fetchOnlineUsers();
+    const intervalId = setInterval(fetchOnlineUsers, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, []);
+
   const handleTypingStatus = (status) => {
-    setIsTyping(status); // Update typing status from ChatArea
+    setIsTyping(status);
   };
 
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
 
+  const isUserOnline = onlineUsers.includes(selectedUserId); // Check if the selected user is online
+
   return (
     <Layout style={styles.layout}>
       <Row style={styles.row}>
         {/* Sidebar for larger screens */}
-        <Col
-          xs={0} sm={6} lg={6}
-          style={styles.sidebarCol}
-        >
+        <Col xs={0} sm={6} lg={6} style={styles.sidebarCol}>
           <Sidebar setSelectedUserId={setSelectedUserId} />
         </Col>
 
         {/* Hamburger menu for smaller screens */}
         <div style={styles.hamburgerMenu}>
-          <Button
-            type="text"
-            icon={<MenuOutlined />}
-            onClick={toggleSidebar}
-            style={styles.hamburgerIcon}
-          />
+          <Button type="text" icon={<MenuOutlined />} onClick={toggleSidebar} style={styles.hamburgerIcon} />
         </div>
 
         {/* Chat Area */}
-        <Col
-          xs={24} sm={18} lg={18}
-          style={styles.chatCol}
-        >
-          {/* Chat Container */}
+        <Col xs={24} sm={18} lg={18} style={styles.chatCol}>
           <div style={styles.chatContainer}>
             {/* Chat Header */}
             <div style={styles.header}>
               <Typography.Title level={4} style={styles.headerTitle}>
-                {receiverName ? `${receiverName}` : 'Select a user to chat'}
+                {receiverName ? receiverName : 'Select a user to chat'}
               </Typography.Title>
               {receiverName && (
                 <Typography.Text style={styles.headerSubText}>
-                  {receiverName ? 'online' : 'offline'}{' '}
-                  {isTyping && '(Typing...)'}
+                  {isUserOnline ? 'Online' : 'Offline'} {isTyping && '(Typing...)'}
                 </Typography.Text>
               )}
             </div>
@@ -115,79 +121,73 @@ const ChatPage = () => {
 
 const styles = {
   layout: {
-    minHeight: '100vh', // Ensure the layout spans the full viewport height
+    height: '100vh',
     backgroundColor: '#2F3A40',
-    display: 'flex', // Make layout a flex container
-    flexDirection: 'row', // Layout the sidebar and chat area side by side
   },
   row: {
-    height: '100%', // Full height for the row
-    margin: 0,
-    display: 'flex',
-    flexDirection: 'row', // Keep the sidebar and chat area side by side
-    width: '100%',
+    height: '100%',
   },
   sidebarCol: {
-    backgroundColor: '#36454F', // Sidebar background
-    borderRight: '1px solid rgba(255, 255, 255, 0.1)', // Subtle border
-    padding: 0,
-    height: '100vh', // Make the sidebar occupy the full height
-    overflowY: 'auto', // Make the sidebar scrollable if content overflows
-  },
-  hamburgerMenu: {
-    position: 'absolute',
-    top: '10px',
-    left: '10px',
-    display: 'none', // Hide by default
-  },
-  hamburgerIcon: {
-    fontSize: '24px',
-    color: '#fff',
-    background: 'none',
-    border: 'none',
+    backgroundColor: '#2F3A40',
+    borderRight: '1px solid #ddd',
+    height: '100%',
+    overflowY: 'auto',
   },
   chatCol: {
-    backgroundColor: '#2F3A40', // Chat background
-    padding: 0,
-    height: '100vh', // Make the chat column occupy the full height
-    display: 'flex', // Allows flex-based layout
+    display: 'flex',
     flexDirection: 'column',
+    height: '100%',
+    overflow: 'hidden',
   },
   chatContainer: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100%', // Fill the column space
-    position: 'relative',
-    overflow: 'hidden', // Prevent scrolling
+    height: '100%',
+    backgroundColor: '#2F3A40',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    margin: '10px',
   },
   header: {
-    backgroundColor: '#36454F',
-    padding: '15px 20px',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-    flexShrink: 0, // Prevent the header from shrinking
+    padding: '16px',
+    borderBottom: '1px solid #ddd',
+    backgroundColor: '#2F3A40',
   },
   headerTitle: {
     margin: 0,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontSize: '16px',
+    color:'#ffffff'
   },
   headerSubText: {
-    color: '#A9A9A9', // Status text color
-    fontSize: '14px',
+    fontSize: '12px',
+    color: '#999',
   },
   chatContent: {
-    flex: 1, // Ensures the chat content fills the remaining space
-    padding: '15px 20px',
-    overflowY: 'auto', // Enable vertical scrolling for chat content
+    flex: 1,
+    padding: '16px',
+    overflowY: 'auto',
+    backgroundColor: '#2F3A40',
   },
   noChatMessage: {
-    textAlign: 'center',
-    marginTop: '20%',
-    color: '#A9A9A9', // Placeholder text color
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    color: '#888',
+  },
+  hamburgerMenu: {
+    display: 'none',
+    position: 'fixed',
+    top: '10px',
+    left: '10px',
+    zIndex: 10,
+  },
+  hamburgerIcon: {
+    fontSize: '18px',
+    color: '#000',
   },
   drawerBody: {
-    padding: '0 16px',
-    backgroundColor: '#2F3A40',
+    padding: '0',
   },
 };
 

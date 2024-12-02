@@ -12,8 +12,6 @@ const ChatArea = ({ selectedUserId, userId }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [receiverName, setReceiverName] = useState('');
-  const [onlineStatus, setOnlineStatus] = useState('offline');
-  const [isTyping, setIsTyping] = useState(false);
   const messageEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
@@ -51,38 +49,8 @@ const ChatArea = ({ selectedUserId, userId }) => {
       fetchReceiverName();
     }
 
-    // User online/offline status handling
-    const handleUserOnline = (userId) => {
-      if (userId === selectedUserId) {
-        setOnlineStatus('online');
-      }
-    };
-
-    const handleUserOffline = (userId) => {
-      if (userId === selectedUserId) {
-        setOnlineStatus('offline');
-      }
-    };
-
-    // Typing status event handlers
-    const handleTyping = () => {
-      setIsTyping(true);
-    };
-
-    const handleStopTyping = () => {
-      setIsTyping(false);
-    };
-
-    socket.on('userOnline', handleUserOnline);
-    socket.on('userOffline', handleUserOffline);
-    socket.on('typing', handleTyping);
-    socket.on('stopTyping', handleStopTyping);
-
     return () => {
-      socket.off('userOnline', handleUserOnline);
-      socket.off('userOffline', handleUserOffline);
-      socket.off('typing', handleTyping);
-      socket.off('stopTyping', handleStopTyping);
+      // No need to handle user online/offline or typing events anymore
     };
   }, [userId, selectedUserId]);
 
@@ -102,23 +70,21 @@ const ChatArea = ({ selectedUserId, userId }) => {
 
     // Emit the message to the server
     socket.emit('sendMessage', msgData);
-    socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
 
     setNewMessage('');
     scrollToBottom();
   };
 
-  // Handle typing event and emit "typing" status
+  // Handle typing event
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
-    socket.emit('typing', { sender: userId, receiver: selectedUserId });
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
     typingTimeoutRef.current = setTimeout(() => {
-      socket.emit('stopTyping', { sender: userId, receiver: selectedUserId });
+      // Do nothing since we are not emitting typing status anymore
     }, 1000);
   };
 
@@ -178,7 +144,6 @@ const ChatArea = ({ selectedUserId, userId }) => {
           </div>
         ))}
         <div ref={messageEndRef} />
-        {isTyping && <div style={styles.typingIndicator}>{`${receiverName} is typing...`}</div>}
       </div>
 
       <div style={styles.inputContainer}>
@@ -226,12 +191,6 @@ const styles = {
     color: '#D3D3D3',
     marginTop: '5px',
     textAlign: 'right',
-  },
-  typingIndicator: {
-    fontSize: '14px',
-    color: '#A9A9A9',
-    margin: '10px 0',
-    textAlign: 'left',
   },
   inputContainer: {
     display: 'flex',
