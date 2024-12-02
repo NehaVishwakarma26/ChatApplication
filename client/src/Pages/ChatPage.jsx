@@ -11,7 +11,6 @@ const { Content } = Layout;
 const ChatPage = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [receiverName, setReceiverName] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState([]); // Array to store online user IDs
   const userId = sessionStorage.getItem('userId');
@@ -52,10 +51,6 @@ const ChatPage = () => {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
 
-  const handleTypingStatus = (status) => {
-    setIsTyping(status);
-  };
-
   const toggleSidebar = () => {
     setIsSidebarVisible(!isSidebarVisible);
   };
@@ -85,7 +80,7 @@ const ChatPage = () => {
               </Typography.Title>
               {receiverName && (
                 <Typography.Text style={styles.headerSubText}>
-                  {isUserOnline ? 'Online' : 'Offline'} {isTyping && '(Typing...)'}
+                  {isUserOnline ? 'Online' : 'Offline'}
                 </Typography.Text>
               )}
             </div>
@@ -93,7 +88,7 @@ const ChatPage = () => {
             {/* Chat Content */}
             <div style={styles.chatContent}>
               {selectedUserId ? (
-                <ChatArea selectedUserId={selectedUserId} userId={userId} onTypingStatus={handleTypingStatus} />
+                <ChatArea selectedUserId={selectedUserId} userId={userId} />
               ) : (
                 <div style={styles.noChatMessage}>
                   <Typography.Text>Select a user to start chatting</Typography.Text>
@@ -156,7 +151,7 @@ const styles = {
   headerTitle: {
     margin: 0,
     fontSize: '16px',
-    color:'#ffffff'
+    color: '#ffffff',
   },
   headerSubText: {
     fontSize: '12px',
