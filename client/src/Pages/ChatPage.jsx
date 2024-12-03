@@ -118,7 +118,7 @@ const ChatPage = () => {
         placement="left"
         onClose={toggleSidebar}
         visible={isSidebarVisible}
-        width={250}
+        width={380}
         bodyStyle={styles.drawerBody}
       >
         <Sidebar setSelectedUserId={setSelectedUserId} />

@@ -99,10 +99,9 @@ const styles = {
   sidebarContainer: {
     backgroundColor: '#1E272E', // Darker color for a modern look
     color: '#fff',
-    position: 'fixed',
     top: 0,
     left: 0,
-    width: '380px', // Increased width
+    width: '23rem', // Increased width
     height: '100vh',
     display: 'flex',
     flexDirection: 'column',
