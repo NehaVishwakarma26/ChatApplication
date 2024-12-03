@@ -66,9 +66,22 @@ const ChatPage = () => {
         </Col>
 
         {/* Hamburger menu for smaller screens */}
-        <div style={styles.hamburgerMenu}>
-          <Button type="text" icon={<MenuOutlined />} onClick={toggleSidebar} style={styles.hamburgerIcon} />
-        </div>
+        <Button
+          type="text"
+          icon={<MenuOutlined style={{ color: '#ffffff', fontSize: '20px' }} />}
+          onClick={toggleSidebar}
+          className="hamburger-menu"
+          style={{
+            backgroundColor: '#2F3A40',
+            padding: '10px',
+            borderRadius: '50%',
+            position: 'fixed',
+            top: '20px',
+            right: '10px', // Ensure this is right aligned
+            zIndex: 10,
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+          }}
+        />
 
         {/* Chat Area */}
         <Col xs={24} sm={18} lg={18} style={styles.chatCol}>
@@ -171,15 +184,11 @@ const styles = {
     color: '#888',
   },
   hamburgerMenu: {
-    display: 'none',
     position: 'fixed',
-    top: '10px',
-    left: '10px',
+    top: '20px',
+    right: '10px',
     zIndex: 10,
-  },
-  hamburgerIcon: {
-    fontSize: '18px',
-    color: '#000',
+    padding: '10px',
   },
   drawerBody: {
     padding: '0',
